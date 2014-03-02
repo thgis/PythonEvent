@@ -22,7 +22,7 @@ class Event(object):
     def add(self,callback):
         # TODO handle the situation where methods or functions have default values for arguments
         # and thereby the function arg count need not match the required arg count
-        # TODO handle the case where the provided callback is either a function or a method
+        # TODO handle the case where the provided callback is neither a function or a method
         # TODO consider implementing some callback mechanism to be passed when weakref.refs are created
         # to enable self management of the _listeners list
         try:
@@ -52,7 +52,7 @@ class Event(object):
     def signal(self,*args):
         # check that supplied num of args equals self.reqNoArgs
         
-        def identifyDeadObject(listener):
+        def identifyDeadObjectAndCallOthers(listener):
             callback, arg = listener[0](), listener[1]
             if arg is not None:
                 # method
@@ -60,7 +60,7 @@ class Event(object):
                 if arg is None:
                     # instance is gone. Do cleanup
                     return False 
-                callback(arg, args)
+                callback(arg, *args)
                 
             else:
                 if callback is None:
@@ -71,24 +71,7 @@ class Event(object):
         
         if self.reqNoArgs is not len(args):
             raise EventError('Supplied number of arguments to signal (%d) was different that required (%d)'%(len(args),self.reqNoArgs))
-        self._listeners[:] =[x for x in self._listeners if identifyDeadObject(x)]
-#        for listener in self._listeners:
-#            callback, arg = listener[0](), listener[1]
-#            if arg is not None:
-#                # method
-#                arg = arg()
-#                if arg is None:
-#                    # instance is gone. Do cleanup
-#                    self._listeners.remove(listener) # this doesnt work 
-#                    continue
-#                callback(arg, args)
-#                continue
-#            else:
-#                if callback is None:
-#                    # callback has been deleted already
-#                    self._listeners.remove(listener)
-#                    continue
-#                callback(args)
+        self._listeners[:] =[x for x in self._listeners if identifyDeadObjectAndCallOthers(x)]
         
         
 class EventError(Exception):
