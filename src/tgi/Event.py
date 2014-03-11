@@ -28,13 +28,13 @@ class Event(object):
         try:
             # assuming methods
             # callback function argument count should be self.reqNoArgs+1
-            if callback.im_func.func_code.co_argcount is not self.reqNoArgs+1:
-                raise EventError('The event requires that the listener function takes %d arguments but the provided listener function takes %d arguments'%(self.reqNoArgs+1,callback.im_func.func_code.co_argcount))            
+            if callback.__func__.__code__.co_argcount is not self.reqNoArgs+1:
+                raise EventError('The event requires that the listener function takes %d arguments but the provided listener function takes %d arguments'%(self.reqNoArgs+1,callback.__func__.__code__.co_argcount))            
             callback_ref = weakref.ref(callback.__func__), weakref.ref(callback.__self__)
         except AttributeError:
             # assuming function
-            if callback.func_code.co_argcount is not self.reqNoArgs:
-                    raise EventError('The event requires that the listener function takes %d arguments but the provided listener function takes %d arguments'%(self.reqNoArgs,callback.func_code.co_argcount))            
+            if callback.__code__.co_argcount is not self.reqNoArgs:
+                    raise EventError('The event requires that the listener function takes %d arguments but the provided listener function takes %d arguments'%(self.reqNoArgs,callback.__code__.co_argcount))            
             callback_ref = weakref.ref(callback), None
         self._listeners.append(callback_ref)
     def remove(self,callback):
